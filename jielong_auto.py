@@ -18,7 +18,7 @@ config = {
     'ss_interval': 0.3,
     # Time to pause after user has interrupted the program
     'user_input_pause_time': 2,
-    # The key for exiting the program
+    # The key to instantly exit the program
     'exit_key': '`',
     # If True The program will not send the names that are already present in the message
     'no_duplicate_names': True,
@@ -103,6 +103,7 @@ def focus_and_go_bottom(msg_area):
     mouse.click()
     keyboard.press_and_release('home')
     keyboard.press_and_release('end')
+    time.sleep(0.1)
 
 def copy_new_message(msg_area):
     mouse.move(*msg_area)
@@ -136,7 +137,7 @@ def join_message(msg, names):
     names_to_add = names
     if config['no_duplicate_names']:
         # Get all current names in the message
-        current_names = [line.split('. ')[1] for line in msg_list[-1:-current_number + 1:-1]]
+        current_names = [line.split('. ')[1] for line in msg_list[-1:-(current_number+1):-1]]
         # Remove names that are already in the message
         names_to_add = [name for name in names if name not in current_names]
         if len(names_to_add) == 0:
@@ -176,15 +177,23 @@ def wait_until_no_inputs():
 
 def initialize():
     # Get message area
-    msg_area = get_msg_area(config['detection_timeout'], config['detection_interval'])
+    msg_area = get_msg_area(config['detection_timeout'], config['ss_interval'])
     if msg_area is None:
-        print('Failed to get message area, timeout')
+        print('Failed to get message area (timeout)')
         quit()
     print('Message area found')
     # Wait for user to stop interacting with the computer
     if get_last_input_time_passed() < config['user_input_pause_time']:
         print('Now stop interacting with the computer until this program has finished.')
-        wait_until_no_inputs()
+        # This loop will be broken when no inputs are detected for a while and the message area is not changed during that time
+        while True:
+            wait_until_no_inputs()
+            new_msg_area = get_msg_area(config['detection_timeout'], config['ss_interval'])
+            if msg_area != new_msg_area:
+                msg_area = new_msg_area
+                continue
+            break
+
     # Focus on message area and move to the bottom of chat
     focus_and_go_bottom(msg_area)
     return msg_area
