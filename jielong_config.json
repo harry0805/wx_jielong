@@ -1,0 +1,8 @@
+{
+    "only_join_after": 3,
+    "no_duplicate_names": true,
+    "exit_key": "`",
+    "ss_interval": 0.3,
+    "user_input_pause_time": 2,
+    "detection_timeout": 10
+}

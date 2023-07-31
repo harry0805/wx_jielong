@@ -1,0 +1,6 @@
+pyautogui
+mouse
+keyboard
+pyperclip
+pillow
+pynput
